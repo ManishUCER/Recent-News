@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local News App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            background: linear-gradient(135deg, #ff6a00, #ee0979);
+            padding: 20px;
+        }
+        #container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 50%;
+            max-width: 600px;
+            margin: 20vh auto;
+            transition: transform 0.5s ease-in-out;
+            animation: rollIn 1s ease-out;
+        }
+        @keyframes rollIn {
+            0% {
+                transform: translateX(-100vw) rotate(-360deg);
+            }
+            100% {
+                transform: translateX(0) rotate(0);
+            }
+        }
+        #container.moved {
+            margin: 20px auto;
+            transform: translateY(-50px);
+        }
+        h2 {
+            color: #ffeb3b;
+        }
+        input {
+            width: 80%;
+            padding: 8px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: #ffcc80;
+            color: #333;
+            font-size: 14px;
+            font-weight: bold;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: #ff5f6d;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button:hover {
+            background: #ff3b58;
+        }
+        #news-container {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 1200px;
+            text-align: left;
+            margin: 0 auto;
+        }
+        #city-heading {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 20px;
+            display: none;
+        }
+        .news-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+        .news-item h3 {
+            color: #ffeb3b;
+        }
+        .news-item a {
+            color: #ffeb3b;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .news-image {
+            width: 250px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-left: 20px;
+            loading: lazy;
+        }
+        .image-placeholder {
+            width: 250px;
+            height: 150px;
+            border-radius: 10px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: gray;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h2>Local News App</h2>
+        <input type="text" id="city" placeholder="Enter city name">
+        <button onclick="fetchNews()">Get News</button>
+    </div>
+    <h2 id="city-heading"></h2>
+    <div id="news-container"></div>
+
+    <script>
+        async function fetchNews() {
+            const city = document.getElementById('city').value;
+            if (!city) {
+                alert('Please enter a city name');
+                return;
+            }
+            
+            document.getElementById('container').classList.add('moved');
+            const cityHeading = document.getElementById('city-heading');
+            cityHeading.innerText = `${city} Recent News`;
+            cityHeading.style.display = 'block';
+            
+            const apiKey = '8fd6684da0a946099666aa4d89e34471';
+            const url = `https://newsapi.org/v2/everything?q=${city}&language=en&apiKey=${apiKey}`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayNews(data.articles);
+            } catch (error) {
+                console.error('Error fetching news:', error);
+                alert('Failed to fetch news. Please try again later.');
+            }
+        }
+
+        function displayNews(articles) {
+            const container = document.getElementById('news-container');
+            container.innerHTML = '';
+            if (!articles || articles.length === 0) {
+                container.innerHTML = '<p>No news found for this city.</p>';
+                return;
+            }
+            
+            articles.forEach(article => {
+                const newsItem = document.createElement('div');
+                newsItem.className = 'news-item';
+                
+                const imgSrc = article.urlToImage || '';
+                const imageElement = imgSrc ? `<img class="news-image" src="${imgSrc}" alt="News Image" loading="lazy">` : `<div class="image-placeholder">No Image</div>`;
+                
+                newsItem.innerHTML = `
+                    <div>
+                        <h3>${article.title}</h3>
+                        <p>${article.description || 'No description available'}</p>
+                        <a href="${article.url}" target="_blank">Read more</a>
+                    </div>
+                    ${imageElement}
+                `;
+                container.appendChild(newsItem);
+            });
+        }
+    </script>
+</body>
+</html>
